@@ -13,6 +13,7 @@ var (
 	seed         = pflag.Int64P("seed", "s", -1, "random seed (-1 is random random)")
 	alliteration = pflag.BoolP("alliteration", "a", false, "generate an alliteration")
 	mode         = pflag.StringP("mode", "m", "name", "generator mode ('name' or 'animal')")
+	prefix       = pflag.StringP("prefix", "p", "", "subject prefix")
 )
 
 func main() {
@@ -33,6 +34,10 @@ func main() {
 	}
 
 	generator.Seed(*seed)
-
-	fmt.Println(generator.Generate(generatorMode, *alliteration))
+	opts := generator.Options{
+		Mode:          generatorMode,
+		Alliteration:  *alliteration,
+		SubjectPrefix: *prefix,
+	}
+	fmt.Println(generator.Gen(opts))
 }

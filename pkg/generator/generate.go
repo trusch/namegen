@@ -1,6 +1,7 @@
 package generator
 
 import (
+	"fmt"
 	"math/rand"
 	"strings"
 )
@@ -17,34 +18,51 @@ const (
 	AnimalMode
 )
 
-func Generate(mode Mode, alliteration bool) string {
-	var (
-		adjective string
-		list      []string
-	)
-	for len(list) == 0 {
-		adjective = adjectives[rand.Intn(len(adjectives))]
-		switch mode {
-		case NameMode:
-			list = names[:]
-		case AnimalMode:
-			list = animals[:]
-		}
-		if alliteration {
-			list = filterByFirstCharacter(list, adjective[0])
-		}
-	}
-	word := list[rand.Intn(len(list))]
-	result := strings.Replace(adjective+"_"+word, " ", "_", -1)
-	result = strings.ToLower(result)
-	return result
+type Options struct {
+	Mode          Mode
+	Alliteration  bool
+	SubjectPrefix string
 }
 
-func filterByFirstCharacter(words []string, firstChar byte) (res []string) {
-	for _, word := range words {
-		if w := strings.ToLower(word); w[0] == firstChar {
-			res = append(res, w)
-		}
+func Gen(opts Options) string {
+	sub := chooseSubject(opts.Mode, opts.SubjectPrefix)
+	adj := chooseAdjective(sub, opts.Alliteration)
+	return strings.ToLower(strings.Replace(fmt.Sprintf("%s_%s", adj, sub), " ", "_", -1))
+}
+
+func chooseSubject(mode Mode, prefix string) string {
+	var list []string
+	switch mode {
+	case NameMode:
+		list = names[:]
+	case AnimalMode:
+		list = animals[:]
 	}
-	return res
+	if len(prefix) > 0 {
+		filtered := make([]string, 0)
+		for _, sub := range list {
+			sub = strings.ToLower(sub)
+			if strings.HasPrefix(sub, prefix) {
+				filtered = append(filtered, sub)
+			}
+		}
+		list = filtered
+	}
+	return list[rand.Intn(len(list))]
+}
+
+func chooseAdjective(subject string, alliteration bool) string {
+	list := adjectives[:]
+	if alliteration {
+		filtered := make([]string, 0)
+		firstCharacter := strings.ToLower(subject[:1])
+		for _, adj := range list {
+			adj = strings.ToLower(adj)
+			if strings.HasPrefix(adj, firstCharacter) {
+				filtered = append(filtered, adj)
+			}
+		}
+		list = filtered
+	}
+	return list[rand.Intn(len(list))]
 }
